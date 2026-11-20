@@ -1,7 +1,7 @@
 
-let desktopWindow = document.getElementsByClassName("Window")
 let body = document.querySelector('body')
-
+let openWindows = []
+//helpers
 function getElementPosition(pointer, element) {
   return {
         y: pointer.pageY, 
@@ -15,6 +15,42 @@ function getElementPosition(pointer, element) {
 
 function calculateNewPosition(windowPosition, newCoordinates, initialCoordinates) {
   return windowPosition + newCoordinates - initialCoordinates
+}
+
+//events
+function openNewWindow(windowID) {
+
+  function createElement(elementType, className, id) {
+    let element = document.createElement(elementType)
+    element.className = className
+    element.id = id
+    return element
+  }
+
+  let found = -1
+  
+  for (let j = 0; j < openWindows.length; j++) {
+    if (openWindows[j] === windowID) {
+      found += 1
+      break
+    }
+  }
+  
+  if (found === -1) {
+    newWindow = createElement('div', 'Window', windowID)
+    body.appendChild(newWindow)
+    header = createElement('div', 'Header', 'header')
+    newWindow.appendChild(header)
+    newWindow.appendChild(createElement('div', 'Border', 'top'))
+    newWindow.appendChild(createElement('div', 'Border', 'right'))
+    newWindow.appendChild(createElement('div', 'Border', 'bottom'))
+    newWindow.appendChild(createElement('div', 'Border', 'left'))
+    openWindows.push(windowID)
+  }
+
+  openableWindow()
+
+
 }
 
 function moveWindow(header, window) {
@@ -105,9 +141,20 @@ function resizeWindow(border) {
                       window.style.width = (newWidth) + 'px' 
                       window.style.left = newLeft + 'px'
                       window.style.cursor = 'ws-resize'},    
+                    },
+
+                    'top':
+                     {'function': () => {
+                      newHeight = initialCoordinates.height- (updateCoordinates.y - initialCoordinates.y)
+                      newTop = initialCoordinates.top + (updateCoordinates.y - initialCoordinates.y)
+                      window.style.height = (newHeight) + 'px' 
+                      window.style.top = newTop + 'px'
+                      window.style.cursor = 'ws-resize'},    
                     }
 
-                }
+
+
+    }
 
     if (newWidth >= bodyCoordinates.width - 5 || newHeight >= bodyCoordinates.height - 5) {
       return  
@@ -116,8 +163,10 @@ function resizeWindow(border) {
       window.style.width = (window.offsetWidth + 1) + 'px'
       return
     }
+
+  
     
-    if (window.offsetHeight <= 200) {
+    if (window.offsetHeight <= 200 || window.offsetHeight > bodyCoordinates.height - 5) {
       window.style.height = window.offsetHeight + 1 + 'px'
       return
     }
@@ -141,15 +190,25 @@ function resizeWindow(border) {
   });
 }
 
+function openableWindow(){
+  let desktopWindow = document.getElementsByClassName("Window")
 
+  let header = document.getElementsByClassName("Header")
+  for (let i = 0; i < header.length; i++) {
+    moveWindow(header[i], desktopWindow[i])
+  }
+  
+  let border = document.querySelectorAll(".Border")
+  for (let i = 0; i < border.length; i++) {
+    resizeWindow(border[i])
+  }
 
-let header = document.getElementsByClassName("Header")
-for (let i = 0; i < header.length; i++) {
-  moveWindow(header[i], desktopWindow[i])
 }
 
 
-let border = document.querySelectorAll(".Border")
-for (let i = 0; i < border.length; i++) {
-  resizeWindow(border[i])
-}
+
+let openMenu = document.querySelectorAll(".Openable")
+for (let i = 0; i < openMenu.length; i++) {
+  openMenu[i].addEventListener("click", (e) => {
+    openNewWindow(openMenu[i].id)
+})}
